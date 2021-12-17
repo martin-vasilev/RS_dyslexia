@@ -9,6 +9,7 @@ import pytesseract
 from PIL import Image
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import pandas as pd
+import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -26,8 +27,8 @@ print(data)
 
 text = pytesseract.image_to_string(imge, config='--psm 11')
 
-with open('coords1.txt', 'w') as f:
-    f.write(data)
+# with open('coords1.txt', 'w') as f:
+#     f.write(data)
     
 with open('text1.txt', 'w') as f:
     f.write(text)
@@ -80,7 +81,7 @@ y2_n= []
     
 for i in range(len(letter)):
     
-    if i>1:
+    if i>0:
         if x1[i]- x2[i-1] >= 3:
             # add the empty space before character:
             letter_n.append(' ')
@@ -111,4 +112,28 @@ for i in range(len(letter)):
         y2_n.append(y2[i])
         
 df = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
+               columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
+
+xdiff = np.diff(x1_n) # differences between successive x1 numbers
+# Return-sweeps are going to show (large) negative differences
+neg_index= np.where(xdiff < 0)# find position of line breaks
+
+
+for i in range(len(neg_index[0])):
+    if i==0:
+        start= 0
+        end= neg_index[0][i]+1 # +1 bc we count from 0
+    else:
+        start= neg_index[0][i-1]+1
+        end= neg_index[0][i]+2
+        
+    y1_bound= min(df.y1[start:end])
+    y2_bound= max(df.y2[start:end])
+    
+    # replace existing y positions with the box bounds:
+    y1_n[start:end]= [y1_bound]* len(df.y1[start:end])
+    y2_n[start:end]= [y2_bound]* len(df.y2[start:end])
+        
+
+df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
                columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
