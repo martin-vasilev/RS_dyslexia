@@ -30,8 +30,8 @@ text = pytesseract.image_to_string(imge, config='--psm 11')
 # with open('coords1.txt', 'w') as f:
 #     f.write(data)
     
-with open('text1.txt', 'w') as f:
-    f.write(text)
+# with open('text1.txt', 'w') as f:
+#     f.write(text)
 
 # fig, ax = plt.subplots()
 
@@ -119,13 +119,18 @@ xdiff = np.diff(x1_n) # differences between successive x1 numbers
 neg_index= np.where(xdiff < 0)# find position of line breaks
 
 
+### start at beginning and use a fixed offset and between line-height
+#how to fix extreme values affecting min/ max:
+#1) keep track of prev lines- make sure the current line is bigger than the end of the previous one. 
+#2) If not, take the average of line spacing in the previous
+
 for i in range(len(neg_index[0])):
     if i==0:
         start= 0
         end= neg_index[0][i]+1 # +1 bc we count from 0
     else:
         start= neg_index[0][i-1]+1
-        end= neg_index[0][i]+2
+        end= neg_index[0][i]+1
         
     y1_bound= min(df.y1[start:end])
     y2_bound= max(df.y2[start:end])
