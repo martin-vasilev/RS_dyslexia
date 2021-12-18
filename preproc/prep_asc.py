@@ -31,6 +31,9 @@ for i in range(len(lines)):
     
     curr_line= lines[i]
     
+    if '!V TARGET_POS TARG1' in curr_line:
+        continue # get rid of annoying EB flags
+    
     # fix display coords issue:
     if 'DISPLAY_COORDS' in curr_line:
         curr_line= curr_line.replace('DISPLAY_COORDS', 'DISPLAY COORDS')
@@ -59,7 +62,7 @@ for i in range(len(lines)):
         
         # if item is a question, take last item number (since item is not updated above)
         ET_flag= 'TRIALID ' + 'E' + str(cond)+'I' +str(item)+ 'D' +str(D)
-    
+            
 
     if 'TRIALID' in curr_line and wait_flag==0:
         
@@ -81,13 +84,25 @@ for i in range(len(lines)):
         msg_flag= curr_line.split(' ')[0]
         curr_line= msg_flag+ ' ' + ET_flag
         wait_flag= 0 # reset so that it doesn't get triggered in repetition
-    
+        
+        # print current line:
+        new_file.append(curr_line)
+        
+        # print start flags:
+        msg_flag= curr_line.split(' ')[0]
+        new_file.append(msg_flag + ' GAZE TARGET ON')
+        new_file.append(msg_flag + ' GAZE TARGET OFF')
+        new_file.append(msg_flag + ' DISPLAY ON')
+        new_file.append(msg_flag + ' SYNCTIME')
+        
+        continue
     
     if 'SYNCTIME' in curr_line:
-       msg_flag= curr_line.split(' ')[0]
-       new_file.append(msg_flag + ' GAZE TARGET ON')
-       new_file.append(msg_flag + ' GAZE TARGET OFF')
-       new_file.append(msg_flag + ' DISPLAY ON')
+        continue
+    #    msg_flag= curr_line.split(' ')[0]
+    #    new_file.append(msg_flag + ' GAZE TARGET ON')
+    #    new_file.append(msg_flag + ' GAZE TARGET OFF')
+    #    new_file.append(msg_flag + ' DISPLAY ON')
     
     # append current line to new file once all changes have been done:
     new_file.append(curr_line)
