@@ -18,6 +18,13 @@ import matplotlib.patches as patches
 
 os.chdir(r'D:\R\RS_dyslexia\stimuli')
 
+### Font settings:
+# TNR:
+y_offset= 66
+line_span= 18
+dist_lines= 5 
+
+
 
 img = 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp'
 imge = Image.open(img)
@@ -117,28 +124,32 @@ df = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
 xdiff = np.diff(x1_n) # differences between successive x1 numbers
 # Return-sweeps are going to show (large) negative differences
 neg_index= np.where(xdiff < 0)# find position of line breaks
-
+breaks= np.append(neg_index[0], len(df))
 
 ### start at beginning and use a fixed offset and between line-height
 #how to fix extreme values affecting min/ max:
 #1) keep track of prev lines- make sure the current line is bigger than the end of the previous one. 
 #2) If not, take the average of line spacing in the previous
 
-for i in range(len(neg_index[0])):
+for i in range(len(breaks)):
     if i==0:
         start= 0
-        end= neg_index[0][i]+1 # +1 bc we count from 0
+        end= breaks[i]+1 # +1 bc we count from 0
+        y_start= y_offset # y offset of 1st line
+        y_end= y_start+ line_span 
     else:
-        start= neg_index[0][i-1]+1
-        end= neg_index[0][i]+1
+        start= breaks[i-1]+1
+        end= breaks[i]+1
+        y_start= y_end +dist_lines # y offset of 1st line
+        y_end= y_start+ line_span 
         
-    y1_bound= min(df.y1[start:end])
-    y2_bound= max(df.y2[start:end])
-    
     # replace existing y positions with the box bounds:
-    y1_n[start:end]= [y1_bound]* len(df.y1[start:end])
-    y2_n[start:end]= [y2_bound]* len(df.y2[start:end])
+    y1_n[start:end]= [y_start]* len(df.y1[start:end])
+    y2_n[start:end]= [y_end]* len(df.y2[start:end])
         
 
 df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
                columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
+
+
+df2.to_excel('TNR20text1Key.xlsx')

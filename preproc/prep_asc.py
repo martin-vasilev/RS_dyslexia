@@ -9,21 +9,64 @@ Created on Fri Dec 17 16:11:06 2021
 
 def text_coords(filename= 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp', yRes= 768):
     
+    import os
     import pytesseract
     from PIL import Image
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     import pandas as pd
     import numpy as np
     
-    imge = Image.open(filename)
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+    
+    
+    
+    os.chdir(r'D:\R\RS_dyslexia\stimuli')
+    
+    ### Font settings:
+    # TNR:
+    y_offset= 66
+    line_span= 18
+    dist_lines= 5 
+    
+    
+    
+    img = 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp'
+    imge = Image.open(img)
     data=pytesseract.image_to_boxes(imge)
-    #text = pytesseract.image_to_string(imge, config='--psm 11')
+    
+    print(data)
+    
+    text = pytesseract.image_to_string(imge, config='--psm 11')
+    
+    # with open('coords1.txt', 'w') as f:
+    #     f.write(data)
+        
+    # with open('text1.txt', 'w') as f:
+    #     f.write(text)
+    
+    # fig, ax = plt.subplots()
+    
+    # # Display the image
+    # ax.imshow(imge)
+    
+    # # Create a Rectangle patch
+    # rect = patches.Rectangle((113, 768-688), 5, 13, linewidth=1, edgecolor='r', facecolor='none')
+    
+    # # Add the patch to the Axes
+    # ax.add_patch(rect)
+    
+    # plt.show()
+    
+    #plt.imsave(fname='my_image.png', arr=imge, cmap='gray_r', format='png')
+    
     
     lines= data.split('\n')
     lines= list(filter(None, lines))
     
+    yRes= 768 # y dimension of screen
     # here y coords are recorded relative to bottom of image, so we need to reverse them
-
+    
     # recode values from tesseract string into num coords:
     letter= []
     x1= []
@@ -40,15 +83,16 @@ def text_coords(filename= 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp', yRes
         y1.append(yRes- int(break_line[4]))
         y2.append(yRes- int(break_line[2]))
         
+    
     # now we need to go over the coords and add the empty spaces:
     letter_n= []
     x1_n= []
     x2_n= []
     y1_n= []
     y2_n= []
-    
+        
     for i in range(len(letter)):
-    
+        
         if i>0:
             if x1[i]- x2[i-1] >= 3:
                 # add the empty space before character:
@@ -78,68 +122,43 @@ def text_coords(filename= 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp', yRes
             x2_n.append(x2[i])
             y1_n.append(y1[i])
             y2_n.append(y2[i])
-        
-
+            
+    df = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
+                   columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
     
     xdiff = np.diff(x1_n) # differences between successive x1 numbers
     # Return-sweeps are going to show (large) negative differences
     neg_index= np.where(xdiff < 0)# find position of line breaks
-    
-    rs= [0]*len(x1_n)
-    
-    for i in range(len(neg_index[0])):
-        rs[neg_index[0][i]+1]= 1
-        
-    df = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n, rs)),
-                   columns =['letter', 'x1', 'x2', 'y1', 'y2', 'RS'] )
-    
-    
+    breaks= np.append(neg_index[0], len(df))
     
     ### start at beginning and use a fixed offset and between line-height
     #how to fix extreme values affecting min/ max:
     #1) keep track of prev lines- make sure the current line is bigger than the end of the previous one. 
     #2) If not, take the average of line spacing in the previous
-    # last_y1= 0
-    # last_y2= 0
     
-    # for i in range(len(neg_index[0])):
-    #     if i==0:
-    #         start= 0
-    #         end= neg_index[0][i]+1 # +1 bc we count from 0
-    #     else:
-    #         start= neg_index[0][i-1]+1
-    #         end= neg_index[0][i]+1
-        
-    #     if i==0:
-    #         y1_bound= min(df.y1[start:end])
-    #         y2_bound= max(df.y2[start:end])
-    #         last_y1= y1_bound
-    #         last_y2= y2_bound
+    for i in range(len(breaks)):
+        if i==0:
+            start= 0
+            end= breaks[i]+1 # +1 bc we count from 0
+            y_start= y_offset # y offset of 1st line
+            y_end= y_start+ line_span 
+        else:
+            start= breaks[i-1]+1
+            end= breaks[i]+1
+            y_start= y_end +dist_lines # y offset of 1st line
+            y_end= y_start+ line_span 
             
-    #     else:
-    #         y1_nums= pd.Series.to_numpy(df.y1[start:end])
-    #         y2_nums= pd.Series.to_numpy(df.y2[start:end])
-            
-    #         ## check for outliers crossing boundaries:
-    #         out1= np.where(y1_nums< last_y2)
-    #         if len(out1[0])>0:
-    #             y1_nums = np.delete(y1_nums, out1)
-    #         #out2= np.where(y1_nums< last_y2)
-            
-    #         y1_bound= min(y1_nums)
-    #         y2_bound= max(y2_nums)
-    #         last_y1= y1_bound
-    #         last_y2= y2_bound
-            
-    #     # replace existing y positions with the box bounds:
-    #     y1_n[start:end]= [y1_bound]* len(df.y1[start:end])
-    #     y2_n[start:end]= [y2_bound]* len(df.y2[start:end])
+        # replace existing y positions with the box bounds:
+        y1_n[start:end]= [y_start]* len(df.y1[start:end])
+        y2_n[start:end]= [y_end]* len(df.y2[start:end])
             
     
-    # df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n, rs)),
-    #                columns =['letter', 'x1', 'x2', 'y1', 'y2', 'RS'] )
+    df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
+                   columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
     
-    return df
+
+
+    return df2
 
 
 
