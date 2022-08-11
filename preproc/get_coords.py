@@ -148,6 +148,7 @@ for i in range(len(breaks)):
     y2_n[start:end]= [y_end]* len(df.y2[start:end])
         
 
+#x_diff= [x2_n - x1_n]
 df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
                columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
 
