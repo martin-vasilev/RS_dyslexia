@@ -16,7 +16,7 @@ import matplotlib.patches as patches
 
 
 
-os.chdir(r'D:\R\RS_dyslexia\stimuli')
+os.chdir(r'D:\R\RS_dyslexia\stimuli\img')
 
 ### Font settings:
 # TNR:
@@ -25,36 +25,13 @@ line_span= 18
 dist_lines= 5 
 
 
-
-img = 'D:\R\RS_dyslexia\stimuli\img\TNR20text1Key.bmp'
-imge = Image.open(img)
+img = 'TNR20text1Key'
+imge = Image.open(img +'.bmp')
 data=pytesseract.image_to_boxes(imge)
 
 print(data)
 
 text = pytesseract.image_to_string(imge, config='--psm 11')
-
-# with open('coords1.txt', 'w') as f:
-#     f.write(data)
-    
-# with open('text1.txt', 'w') as f:
-#     f.write(text)
-
-# fig, ax = plt.subplots()
-
-# # Display the image
-# ax.imshow(imge)
-
-# # Create a Rectangle patch
-# rect = patches.Rectangle((113, 768-688), 5, 13, linewidth=1, edgecolor='r', facecolor='none')
-
-# # Add the patch to the Axes
-# ax.add_patch(rect)
-
-# plt.show()
-
-#plt.imsave(fname='my_image.png', arr=imge, cmap='gray_r', format='png')
-
 
 lines= data.split('\n')
 lines= list(filter(None, lines))
@@ -153,4 +130,80 @@ df2 = pd.DataFrame(list(zip(letter_n, x1_n, x2_n, y1_n, y2_n)),
                columns =['letter', 'x1', 'x2', 'y1', 'y2'] )
 
 
-df2.to_excel('TNR20text1Key.xlsx')
+df2.to_excel(img+ '.xlsx')
+
+# Plot bounds on top of the image:
+
+# fig, ax = plt.subplots()
+
+# # Display the image
+# ax.imshow(imge)
+
+# # Create a Rectangle patch
+
+# for i in range(len(df2)):
+#     rect = patches.Rectangle((df2.x1[i], df2.y1[i]),
+#                              df2.x2[i]-df2.x1[i], df2.y2[i]-df.y1[i],
+#                          linewidth=1, edgecolor='r', facecolor='none')
+#     # Add the patch to the Axes
+#     ax.add_patch(rect)
+
+# # Add the patch to the Axes
+# ax.add_patch(rect)
+
+# plt.show()
+# plt.axis('off')
+
+my_dpi= 120
+
+fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
+fig.figimage(imge)
+
+for i in range(len(df2)):
+    fig.patches.extend([plt.Rectangle((df2.x1[i], 768-17-df2.y1[i]),
+                             df2.x2[i]-df2.x1[i], df2.y2[i]-df.y1[i],
+                             fill= False, color='r', linewidth=0.1)])
+                     
+fig.savefig('my_fig.png', dpi=my_dpi)
+
+
+df_new= pd.read_excel(img+ 'm.xlsx')
+
+fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
+fig.figimage(imge)
+
+for i in range(len(df_new)):
+    fig.patches.extend([plt.Rectangle((df_new.x1[i], 768-17-df_new.y1[i]),
+                             df_new.x2[i]-df_new.x1[i], df_new.y2[i]-df_new.y1[i],
+                             fill= False, color='r', linewidth=0.1)])
+                     
+fig.savefig('my_fig2.png', dpi=my_dpi)
+
+
+#### update df with real widths:
+TNR=  pd.read_excel('D:\R\RS_dyslexia\stimuli\letter_width_TNR.xlsx')
+TNR.letter[0]=''
+
+df3= df2
+
+x_offset= 112
+
+loc= int(np.where(TNR["letter"]=='a')[0])
+
+for i in range(len(df3)):
+    loc= int(np.where(TNR["letter"]== df3.letter[i])[0])
+    
+    if i==0:
+       df3.x1[i]= x_offset  
+       df3.x2[i]= x_offset + int(TNR.width[loc])
+       
+    if df3.y1[i-1]== df3.y1[i]: # still on same line:
+        
+       
+
+
+
+
+
+
+
