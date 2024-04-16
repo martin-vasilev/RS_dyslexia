@@ -10,6 +10,7 @@ from PIL import Image
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import pandas as pd
 import numpy as np
+import cv2
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -27,7 +28,8 @@ dist_lines= 5
 
 img = 'TNR20text1Key'
 imge = Image.open(img +'.bmp')
-data=pytesseract.image_to_boxes(imge)
+
+data=pytesseract.image_to_boxes(imge, config= r'--oem 3 --psm 6' )
 
 print(data)
 
@@ -167,22 +169,22 @@ for i in range(len(df2)):
 fig.savefig('my_fig.png', dpi=my_dpi)
 
 
-df_new= pd.read_excel(img+ 'm.xlsx')
+# df_new= pd.read_excel(img+ 'm.xlsx')
 
-fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
-fig.figimage(imge)
+# fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
+# fig.figimage(imge)
 
-for i in range(len(df_new)):
-    fig.patches.extend([plt.Rectangle((df_new.x1[i], 768-17-df_new.y1[i]),
-                             df_new.x2[i]-df_new.x1[i], df_new.y2[i]-df_new.y1[i],
-                             fill= False, color='r', linewidth=0.1)])
+# for i in range(len(df_new)):
+#     fig.patches.extend([plt.Rectangle((df_new.x1[i], 768-17-df_new.y1[i]),
+#                               df_new.x2[i]-df_new.x1[i], df_new.y2[i]-df_new.y1[i],
+#                               fill= False, color='r', linewidth=0.1)])
                      
-fig.savefig('my_fig2.png', dpi=my_dpi)
+# fig.savefig('my_fig2.png', dpi=my_dpi)
 
 
 #### update df with real widths:
 TNR=  pd.read_excel('D:\R\RS_dyslexia\stimuli\letter_width_TNR.xlsx')
-TNR.letter[0]=''
+#TNR.letter[0, 'letter']= ' '
 
 df3= df2
 
@@ -191,16 +193,42 @@ x_offset= 112
 loc= int(np.where(TNR["letter"]=='a')[0])
 
 for i in range(len(df3)):
-    loc= int(np.where(TNR["letter"]== df3.letter[i])[0])
     
-    if i==0:
-       df3.x1[i]= x_offset  
-       df3.x2[i]= x_offset + int(TNR.width[loc])
+    if i>0:
+        if df3.y1[i]== df3.y1[i-1]: # still on same line:
+            if df3.x1[i] - df3.x2[i-1]!=1:
+                
+ #               if df3.x1[i] < df3.x2[i-1]: 
+                
+                len_letter= df3.x2[i] - df3.x1[i]
+                df3.at[i, 'x1']= df3.x2[i-1]+1
+                df3.at[i, 'x2']= df3.x2[i-1]+1 + len_letter
+                
+    
+    # loc= int(np.where(TNR["letter"]== df3.letter[i])[0])
+    
+    # if i==0:
+    #    df3.at[i, 'x1']= x_offset  
+    #    df3.at[i, 'x2']= x_offset + int(TNR.width[loc])
+    # else:
        
-    if df3.y1[i-1]== df3.y1[i]: # still on same line:
-        
+    #    if df3.y1[i]== df3.y1[i-1]: # still on same line:
+    #        df3.at[i, 'x1']= df3.x2[i-1]+1 # +1 so we start on the next pixel 
+    #        df3.at[i, 'x2']= df3.x1[i] + int(TNR.width[loc])+1
+    #    else: # new line, start from offset
+    #        df3.at[i, 'x1']= x_offset  
+    #        df3.at[i, 'x2']= x_offset + int(TNR.width[loc])
        
 
+fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
+fig.figimage(imge)
+
+for i in range(len(df3)):
+    fig.patches.extend([plt.Rectangle((df3.x1[i], 768-17-df3.y1[i]),
+                              df3.x2[i]-df3.x1[i], df3.y2[i]-df3.y1[i],
+                              fill= False, color='r', linewidth=0.15)])
+                     
+fig.savefig('my_fig2.png', dpi=my_dpi)
 
 
 
