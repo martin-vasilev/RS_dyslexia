@@ -71,13 +71,13 @@ def ImageGenerator(sent, ScreenX=1920, ScreenY=1080, posX=200, posY=200, Font_si
     return bounding_boxes
 
 # Example usage
-img_name = "P1"
+img_name = "P10"
 
 with open(img_name + ".txt", "rt") as f:
     text = f.read().replace('\\n', '\n')
 
 bounding_boxes = ImageGenerator(text, ScreenX=1024, ScreenY=768, posX=112, posY=63,
-                                Font_size=17.5, filename='comp/' + img_name + ".bmp", draw_boxes=True)
+                                Font_size=17.5, filename='comp/' + img_name + ".bmp", draw_boxes=False)
                                       #19.48 TNR first 4
 # Print the bounding boxes
 for char, box in bounding_boxes:
