@@ -20,7 +20,7 @@ def ImageGenerator(sent, ScreenX=1920, ScreenY=1080, posX=200, posY=200, Font_si
     bounding_boxes = []
     
     # Fixed line spacing
-    line_spacing = Font_size * 0.182  # Adjust this multiplier as needed
+    line_spacing = Font_size * .24 #0.182  # Adjust this multiplier as needed
     
     # Draw each character separately and calculate its bounding box
     lines = sent.split('\n')
@@ -71,13 +71,13 @@ def ImageGenerator(sent, ScreenX=1920, ScreenY=1080, posX=200, posY=200, Font_si
     return bounding_boxes
 
 # Example usage
-img_name = "P7"
+img_name = "P5"
 
 with open(img_name + ".txt", "rt") as f:
     text = f.read().replace('\\n', '\n')
 
 bounding_boxes = ImageGenerator(text, ScreenX=1024, ScreenY=768, posX=112, posY=63,
-                                Font_size=19.48, filename='comp/' + img_name + ".bmp", draw_boxes=False)
+                                Font_size=20.25, filename='comp/' + img_name + ".bmp", draw_boxes=False)
                                       #19.48 TNR first 4
 # Print the bounding boxes
 for char, box in bounding_boxes:
