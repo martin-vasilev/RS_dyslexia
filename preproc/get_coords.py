@@ -26,7 +26,7 @@ line_span= 18
 dist_lines= 5 
 
 
-img = 'TNR20text1Key'
+img = 'TNR20text10Key'
 imge = Image.open(img +'.bmp')
 
 
