@@ -14,10 +14,10 @@ import cv2
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from statistics import mode
 
 
-
-os.chdir(r'D:\R\RS_dyslexia\stimuli\img')
+os.chdir('C:\\Users\Martin\Documents\R\RS_dyslexia\stimuli\img')
 
 ### Font settings:
 # TNR:
@@ -29,11 +29,12 @@ dist_lines= 5
 img = 'TNR20text1Key'
 imge = Image.open(img +'.bmp')
 
-data=pytesseract.image_to_boxes(imge, config= r'--oem 3 --psm 6' )
+
+data=pytesseract.image_to_boxes(imge, config= '--psm 4' )
 
 print(data)
 
-text = pytesseract.image_to_string(imge, config='--psm 11')
+text = pytesseract.image_to_string(imge, config='--psm 4')
 
 lines= data.split('\n')
 lines= list(filter(None, lines))
@@ -167,6 +168,30 @@ for i in range(len(df2)):
                              fill= False, color='r', linewidth=0.1)])
                      
 fig.savefig('my_fig.png', dpi=my_dpi)
+
+
+df3= df2
+
+for i in range(len(df3)):
+    if i>0:
+        if df.x1[i]< df.x2[i-1]:
+            rows= df2['letter']== df3.letter[i]
+            
+            df3.at[i-1, 'x2']= df3.x1[i]-1
+
+
+fig= plt.figure(figsize=(1024/my_dpi, 768/my_dpi), dpi=my_dpi)
+fig.figimage(imge)
+
+for i in range(len(df3)):
+    fig.patches.extend([plt.Rectangle((df3.x1[i], 768-17-df3.y1[i]),
+                              df3.x2[i]-df3.x1[i], df3.y2[i]-df3.y1[i],
+                              fill= False, color='r', linewidth=0.15)])
+                     
+fig.savefig('my_fig2.png', dpi=my_dpi)
+
+
+
 
 
 # df_new= pd.read_excel(img+ 'm.xlsx')
